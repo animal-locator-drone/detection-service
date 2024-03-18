@@ -25,7 +25,8 @@ async def main():
         while True:
                 detection_roll = random.randint(0, 100)
                 if detection_roll > 50:
-                        detections_queue.appendleft({
+                        # Somewhere we will need to also asyncronously save the images to disk
+                        detections_queue.append({
                                 "id": str(uuid4()),
                                 "time": time.time(),
                                 "images": ["image1.jpg", "image2.jpg"],
