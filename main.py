@@ -29,7 +29,11 @@ async def main():
                         detections_queue.append({
                                 "id": str(uuid4()),
                                 "time": time.time(),
-                                "images": ["image1.jpg", "image2.jpg"],
+                                "images": [
+                                        "https://www.akc.org/wp-content/uploads/2017/11/Afghan-Hound-at-the-National-Championship.jpg",
+                                        "https://s3.amazonaws.com/cdn-origin-etr.akc.org/wp-content/uploads/2017/11/02151216/Afghan-Hound-standing-in-a-garden.jpg",
+                                        "https://i.ytimg.com/vi/BbAjcUdb_io/maxresdefault.jpg"
+                                ],
                                 "location": [random.randint(0, 100), random.randint(0, 100)]
                         })
                 print("Next detection in 1 second")
