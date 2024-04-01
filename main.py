@@ -28,11 +28,12 @@ def main(queue):
         data = {
             "id": str(uuid4()),
             "time": time.time(),
-            "images": cropped_images,
+            "images": [f"output_images/{image_name}" for image_name in cropped_images],
             "location": [random.randint(0, 100), random.randint(0, 100)]
         }
         print("appending to queue")
         queue.put(data)
+        time.sleep(5)
 
 
 if __name__ == '__main__':
