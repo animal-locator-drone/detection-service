@@ -38,8 +38,9 @@ def process_cropped_images(cropped_images):
                 
 
 def main(queue):
-        for cropped_images in generate_prediction_images(
-            'yolov8n.pt', './example_vids/dogs_small.mp4'):
+        model_name = "yolov8n.pt"
+        vid_src = './example_vids/dogs_small.mp4'
+        for cropped_images in generate_prediction_images(model_name, vid_src):
                 if len(cropped_images) == 0:
                         continue
                 
