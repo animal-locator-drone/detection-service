@@ -1,3 +1,4 @@
+import os
 import requests
 import time
 import random
@@ -6,10 +7,17 @@ from multiprocessing import Process, Queue
 
 from dog_detector import *
 
-
 def post_detection(data):
         response = requests.post('http://localhost:3000/new_detection',
                                  json=data)
+        
+        # Upload image to server
+        files = {'image': open(data["images"][0], 'rb')}
+        image_data = {
+                "name": data["id"]
+        }
+        response = requests.post('http://localhost:3000/upload_image',
+                                 files=files)
         # print(response)
 
 
@@ -48,6 +56,11 @@ def main(queue):
 
 
 if __name__ == '__main__':
+        
+        # Create necessary directories
+        os.makedirs("output_images", exist_ok=True)
+        os.makedirs("example_vids", exist_ok=True)
+        
         detections_queue = Queue(maxsize=1000)
 
         main_process = Process(target=main, args=(detections_queue, ))
