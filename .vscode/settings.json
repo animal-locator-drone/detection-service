@@ -1,0 +1,10 @@
+{
+        "[python]": {
+                "editor.formatOnSaveMode": "file",
+                "editor.formatOnSave": false,
+                "editor.defaultFormatter": "eeyore.yapf",
+                "editor.formatOnType": false
+              },
+        "yapf.args": ["--style", "{based_on_style: pep8, indent_width: 8, column_limit: 80}"],
+
+}
