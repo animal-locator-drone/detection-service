@@ -2,7 +2,6 @@ import requests
 import time
 import random
 from uuid import uuid4
-from collections import deque
 from multiprocessing import Process, Queue
 
 from dog_detector import *
