@@ -3,65 +3,96 @@ from ultralytics import YOLO
 import cv2
 from uuid import uuid4
 
-# model = YOLO("yolov8n.pt")  # initialize model
-# results = model(source='./dogs.mp4', show=True, conf=0.4, stream=True)  # detect video stream
 
-# for result in results:
-#         boxes = result.boxes
-#         confidences = list(zip(boxes.cls, boxes.conf))
-#         names = result.names
-        
-#         # Print out the class confidence and bounding box coordinates
-#         class_confidence = result.probs
-        
-#         if len(boxes) > 0:
-#                 print("Class confidence: ", confidences)
-        
-#                 print("Boxes: ", boxes)
-#                 print("Names: ", names)
-#                 print("---------------------------------------------------")
+def construct_cropped_image(box, original_image):
+        xyxy_format = box.xyxy[0]
 
-def construct_cropped_images(boxes, original_image):
-        images = []
-        for box in boxes:
-                # print(box.cls)
-                if box.cls != tensor([16.]):
+        x1, y1 = xyxy_format[0], xyxy_format[1]
+        x2, y2 = xyxy_format[2], xyxy_format[3]
+
+        cropped_image = original_image[int(y1):int(y2), int(x1):int(x2)]
+        image_name = f"cropped_image_{str(uuid4())}.jpg"
+
+        cv2.imwrite("./output_images/" + image_name, cropped_image)
+
+        return image_name
+
+
+# def process_results(result):
+#         detected_dogs = [
+#             box for box in result.boxes if box.cls == tensor([16.])
+#         ]
+
+#         cropped_images = [
+#             construct_cropped_image(box, result.orig_img)
+#             for box in detected_dogs
+#         ]
+
+#         return cropped_images
+
+
+def process_boxes(boxes, original_image):
+
+        if len(boxes) == 0:
+                return []
+        cropped_images = [
+            construct_cropped_image(box, original_image) for box in boxes
+        ]
+
+        return cropped_images
+
+
+# Convert the tensor IDs into integers for comparison
+def generate_integer_ids(tensor_ids):
+        for tensor_id in tensor_ids:
+                yield int(tensor_id)
+
+
+def generate_prediction_images(model_name="yolov8n.pt",
+                               video_source='./example_vids/dogs_small.mp4'):
+
+        model = YOLO(model_name)
+        results = model(source=video_source, show=False, conf=0.4, stream=True)
+        tracked_results = model.track(source=video_source,
+                                      show=False,
+                                      conf=0.4,
+                                      stream=True,
+                                      iou=0.5)
+
+        unique_ids = set()
+
+        for result in tracked_results:
+
+                # print("RESULT", result.boxes)
+                print("Unique IDs", unique_ids)
+
+                # Sometimes there is no id for the boxes not sure why
+                if result.boxes.id is None:
                         continue
-                xyxy_format = box.xyxy[0]
-                # print(xyxy_format)
-                x1, y1, x2, y2 = xyxy_format[0], xyxy_format[1], xyxy_format[2], xyxy_format[3]
-                cropped_image = original_image[int(y1):int(y2), int(x1):int(x2)]
-                images.append(cropped_image)
-        # save images
-        
-        image_names = [f"cropped_image_{i}_{str(uuid4())}.jpg" for i in range(len(images))]
-        
-        for i, image in enumerate(images):
-                cv2.imwrite("./output_images/"+image_names[i], image)
-                
-        return image_names
 
-def generate_predictions():
-        model = YOLO("yolov8n.pt")  # initialize model
-        results = model(source='./example_vids/dogs_small.mp4', show=False, conf=0.4, stream=True)  # detect video stream
-
-        for result in results:
-                # if not len(result.boxes) > 0 and not tensor(16.) in result.boxes.cls:
-                
+                # Check if there are any boxes detected in the frame
                 if not len(result.boxes) > 0:
                         continue
+
+                # Check if there is a dog detected in the frame
+                # 16 is the class id for dogs
                 if not tensor(16.) in result.boxes.cls:
                         continue
-                cropped_images = construct_cropped_images(result.boxes, result.orig_img)
-                confidences = list(zip(
-                        result.boxes.cls,
-                        result.boxes.conf
-                ))
-                yield confidences, result.boxes, cropped_images
-                                
-if __name__ == "__main__":
-        for confidences, boxes, cropped_image in generate_predictions():
-                print("Confidences: ", confidences)
-                print("Boxes: ", boxes)
-                print("Cropped Image: ", cropped_image)
-                print("---------------------------------------------------")
+
+                boxes_to_process = []
+
+                for index, id in enumerate(generate_integer_ids(result.boxes.id)):
+                        
+                        if id in unique_ids:
+                                continue
+                        
+                        unique_ids.add(id)
+                        boxes_to_process.append(result.boxes[index])
+                        
+                yield process_boxes(boxes_to_process, result.orig_img)
+
+
+if __name__ == '__main__':
+        for cropped_images in generate_prediction_images():
+                print(cropped_images)
+                print("done")
