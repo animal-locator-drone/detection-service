@@ -17,20 +17,6 @@ def construct_cropped_image(box, original_image):
 
         return image_name
 
-
-# def process_results(result):
-#         detected_dogs = [
-#             box for box in result.boxes if box.cls == tensor([16.])
-#         ]
-
-#         cropped_images = [
-#             construct_cropped_image(box, result.orig_img)
-#             for box in detected_dogs
-#         ]
-
-#         return cropped_images
-
-
 def process_boxes(boxes, original_image):
 
         if len(boxes) == 0:
@@ -41,23 +27,23 @@ def process_boxes(boxes, original_image):
 
         return cropped_images
 
-
 # Convert the tensor IDs into integers for comparison
 def generate_integer_ids(tensor_ids):
         for tensor_id in tensor_ids:
                 yield int(tensor_id)
 
-
 def generate_prediction_images(model_name="yolov8n.pt",
                                video_source='./example_vids/dogs_small.mp4'):
 
         model = YOLO(model_name)
-        results = model(source=video_source, show=False, conf=0.4, stream=True)
-        tracked_results = model.track(source=video_source,
-                                      show=False,
-                                      conf=0.4,
-                                      stream=True,
-                                      iou=0.5)
+        
+        tracked_results = model.track(
+                source=video_source,
+                show=False,
+                conf=0.4,
+                stream=True,
+                iou=0.5
+                )
 
         unique_ids = set()
 
@@ -90,7 +76,6 @@ def generate_prediction_images(model_name="yolov8n.pt",
                         boxes_to_process.append(result.boxes[index])
                         
                 yield process_boxes(boxes_to_process, result.orig_img)
-
 
 if __name__ == '__main__':
         for cropped_images in generate_prediction_images():
