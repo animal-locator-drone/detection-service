@@ -7,7 +7,7 @@ from multiprocessing import Process, Queue
 from dog_detector import *
 
 
-def post_detection_random(data):
+def post_detection(data):
         response = requests.post('http://localhost:3000/new_detection',
                                  json=data)
         # print(response)
@@ -18,7 +18,7 @@ def post_detections_from_queue(queue):
                 if not queue.empty():
                         # print("posting detection")
                         data = queue.get()
-                        post_detection_random(data)
+                        post_detection(data)
 
 def process_cropped_images(cropped_images):
         for cropped_image in cropped_images:
