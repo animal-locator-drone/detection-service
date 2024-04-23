@@ -5,7 +5,16 @@ import random
 from uuid import uuid4
 from multiprocessing import Process, Queue
 
+from fastapi import FastAPI
+from pydantic import BaseModel
+from configparser import ConfigParser
+import os
+
+app = FastAPI()
+
 from dog_detector import *
+
+
 
 def post_detection(data):
         response = requests.post('http://localhost:3000/new_detection',
