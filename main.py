@@ -63,11 +63,15 @@ def process_cropped_images(cropped_images):
 def main(queue):
         model_name = "yolov8n.pt"
         vid_src = './example_vids/dogs_small.mp4'
+        print("Starting main process")
         for cropped_images in generate_prediction_images(model_name, vid_src):
+                # print("Processing cropped images")
                 if len(cropped_images) == 0:
+                        # print("No detections")
                         continue
                 
                 for data in process_cropped_images(cropped_images):
+                        # print("Putting data in queue")
                         queue.put(data)
 
 
