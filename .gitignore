@@ -164,3 +164,6 @@ output_images/
 
 # ignore example vids
 example_vids/
+
+# ignore select_detection folder
+select_detection/
