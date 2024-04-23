@@ -8,7 +8,7 @@ from multiprocessing import Process, Queue
 from fastapi import FastAPI
 from pydantic import BaseModel
 from configparser import ConfigParser
-import os
+import uvicorn
 
 app = FastAPI()
 
@@ -59,7 +59,6 @@ def process_cropped_images(cropped_images):
                 }
                 
                 yield data
-                
 
 def main(queue):
         model_name = "yolov8n.pt"
@@ -74,6 +73,8 @@ def main(queue):
 
 if __name__ == '__main__':
         
+        host, port, reload = read_config()
+                        
         # Create necessary directories
         os.makedirs("output_images", exist_ok=True)
         os.makedirs("example_vids", exist_ok=True)
@@ -82,18 +83,14 @@ if __name__ == '__main__':
 
         main_process = Process(target=main, args=(detections_queue, ))
         main_process.start()
-        # print("main process started")
+        print("main process started")
 
         post_process = Process(target=post_detections_from_queue,
                                args=(detections_queue, ))
         post_process.start()
-        # print("post process started")
+        print("post process started")
 
+        
+        uvicorn.run(app, host=host, port=port, reload=reload)
         main_process.join()
         post_process.join()
-
-# Run the FastAPI app with configured options
-if __name__ == '__main__':
-    host, port, reload = read_config()
-    import uvicorn
-    uvicorn.run("main:app", host=host, port=port, reload=reload)
