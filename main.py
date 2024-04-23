@@ -14,7 +14,15 @@ app = FastAPI()
 
 from dog_detector import *
 
-
+def read_config():
+    # Read configuration from config.ini
+    config = ConfigParser()
+    config.read('config.ini')
+    # Get configuration values
+    host = config.get('app', 'host')
+    port = config.getint('app', 'port')
+    reload = config.getboolean('app', 'reload')
+    return host, port, reload
 
 def post_detection(data):
         response = requests.post('http://localhost:3000/new_detection',
@@ -83,3 +91,9 @@ if __name__ == '__main__':
 
         main_process.join()
         post_process.join()
+
+# Run the FastAPI app with configured options
+if __name__ == '__main__':
+    host, port, reload = read_config()
+    import uvicorn
+    uvicorn.run("main:app", host=host, port=port, reload=reload)
