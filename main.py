@@ -26,8 +26,10 @@ def read_config():
         # Get configuration values
         host = config.get('app', 'host')
         port = config.getint('app', 'port')
-        reload = config.getboolean('app', 'reload')
-        return host, port, reload
+        do_reload = config.getboolean('app', 'reload')
+        app_port = config.getint('app', 'app_port')
+        app_host = config.get('app', 'app_host')
+        return host, port, do_reload, app_port, app_host
 
 @app.post("/select_detection/{detection_id}")
 async def select_detection(detection_id: str):
@@ -56,7 +58,10 @@ async def select_detection(detection_id: str):
        
 
 def post_detection(data):
-        response = requests.post('http://localhost:3000/new_detection',
+        app_port, app_host = read_config()[3:]
+        print("app_host", app_host)
+        print("app_port", app_port)
+        response = requests.post(f'http://{app_host}:{app_port}/new_detection',
                                  json=data)
         
         # Upload image to server
@@ -64,9 +69,8 @@ def post_detection(data):
         image_data = {
                 "name": data["id"]
         }
-        response = requests.post('http://localhost:3000/upload_image',
+        response = requests.post(f'http://{app_host}:{app_port}/upload_image',
                                  files=files)
-        # print(response)
 
 
 def post_detections_from_queue(queue):
@@ -108,7 +112,7 @@ def main(queue, detection_id):
 
 if __name__ == '__main__':
         
-        host, port, do_reload = read_config()
+        host, port, do_reload, app_host, app_port = read_config()
                         
         # Create necessary directories
         os.makedirs("output_images", exist_ok=True)
@@ -116,3 +120,8 @@ if __name__ == '__main__':
         os.makedirs("select_detection", exist_ok=True)
         
         uvicorn.run("main:app", host=host, port=port, reload=do_reload)
+        
+        for detection_id in main_process_dict:
+                main_process_dict[detection_id].terminate()
+                post_process_dict[detection_id].terminate()
+        
