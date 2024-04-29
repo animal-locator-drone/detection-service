@@ -38,6 +38,10 @@ async def select_detection(detection_id: str):
                 return {"status": "error - detections folder missing"}
         if detection_id + ".mp4" not in os.listdir("select_detection"):
                 return {"status": "error - detection not found"}
+        if main_process_dict.get(detection_id):
+                return {"status": "success"}
+        if post_process_dict.get(detection_id):
+                return {"status": "success"}
         
         main_process_dict[detection_id] = Process(
                 target=main,
