@@ -33,7 +33,6 @@ def read_config():
 
 @app.post("/select_detection/{detection_id}")
 async def select_detection(detection_id: str):
-        queue_dict[detection_id] = Queue(maxsize=1000)
         if not os.path.exists("select_detection"):
                 return {"status": "error - detections folder missing"}
         if detection_id + ".mp4" not in os.listdir("select_detection"):
@@ -43,6 +42,7 @@ async def select_detection(detection_id: str):
         if post_process_dict.get(detection_id):
                 return {"status": "success"}
         
+        queue_dict[detection_id] = Queue(maxsize=1000)
         main_process_dict[detection_id] = Process(
                 target=main,
                 args=(queue_dict[detection_id], detection_id)
@@ -126,6 +126,6 @@ if __name__ == '__main__':
         uvicorn.run("main:app", host=host, port=port, reload=do_reload)
         
         for detection_id in main_process_dict:
-                main_process_dict[detection_id].terminate()
-                post_process_dict[detection_id].terminate()
+                main_process_dict[detection_id].join()
+                post_process_dict[detection_id].join()
         
